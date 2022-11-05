@@ -50,8 +50,9 @@ int main(int argc, char *argv[]) {
     unsigned char *pg=gray_img;
     int count=0;
     
-    #pragma omp parallel for
+    #pragma omp parallel 
     for(int i=0; i!=height; i++){
+        #pragma omp for nowait 
         for(int j=0; j!=width; j++){
             pg[i*width + j] = (uint8_t)((p[channels*(i*width + j)] + p[channels*(i*width + j) + 1] + p[channels*(i*width + j) + 2])/3.0);
 
