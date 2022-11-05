@@ -11,12 +11,22 @@
 
 
 int main(int argc, char *argv[]) {
+    if (argc < 2){
+        printf("Missing args: ./grayscale <threads>\n");
+        return -1;
+    }
+
+    int nThreads = atoi(argv[1]);
+    omp_set_num_threads(nThreads);
+
     int width, height, channels;
-    unsigned char *img = stbi_load("sky.jpg", &width, &height, &channels, 0);
+    unsigned char *img = stbi_load("dog.jpg", &width, &height, &channels, 0);
+    
     if(img == NULL) {
         printf("Error in loading the image\n");
         exit(1);
     }
+    
     printf("Loaded image with a width of %dpx, a height of %dpx and %d channels\n", width, height, channels);
 
 
@@ -32,42 +42,33 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    printf("%u, %zu", *(img+1), img_size);
+    printf("%u, %d\n", *(img+1), img_size);
+    printf("width: %d\t height: %d\t channels: %d\n", width, height, channels);
     double start = omp_get_wtime();
 
-    unsigned char *p, *pg=gray_img;
+    unsigned char *p=img;
+    unsigned char *pg=gray_img;
+    int count=0;
+    
+    #pragma omp parallel for
+    for(int i=0; i!=height; i++){
+        for(int j=0; j!=width; j++){
+            pg[i*width + j] = (uint8_t)((p[channels*(i*width + j)] + p[channels*(i*width + j) + 1] + p[channels*(i*width + j) + 2])/3.0);
 
-    #pragma omp parallel for private(pg) num_threads(1)
-    for(p=img; p < img + img_size; p += channels){
-        *pg = (uint8_t)((*p + *(p + 1) + *(p + 2))/3.0);
-        if(channels == 4) {
-            *(pg + 1) = *(p + 3);
+            if(channels == 4) {
+                *(pg + 1) = *(p + 3);
+            }
         }
-        pg += gray_channels;
     }
-    // p = [1,2,3,4]
-    // *p = 1
-    // *(p+1) 2
-    // p+1 = [2,3,4]
-    // #pragma omp parallel for num_threads(4)
-    // for(int i=0;i<(img + img_size);i++){
-    //     printf("i hate cs\n");
-    //     *pg = (uint8_t)((*p+i + *(p+i + 1) + *(p+i + 2))/3.0);
-    //     printf("%u\n",*pg);
-    //     if(channels == 4) {
-    //         *(pg+ i+ 1) = *(p +i+ 3);
-    //     }
-    //     pg += gray_channels;
-    // }
+
+    
     double finish = omp_get_wtime();
     double elapsed = finish - start;
 
     printf("Time: %f\n", elapsed);
 
 
-    stbi_write_jpg("sky_gray.jpg", width, height, gray_channels, gray_img, 100); //1-100 image quality
-
-
+    stbi_write_jpg("output.jpg", width, height, gray_channels, gray_img, 100); //1-100 image quality
 
     return 0;
 }
