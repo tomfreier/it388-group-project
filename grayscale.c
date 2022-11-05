@@ -11,13 +11,18 @@
 
 
 int main(int argc, char *argv[]) {
+    int nThreads;
+
     if (argc < 2){
-        printf("Missing args: ./grayscale <threads>\n");
-        return -1;
+        printf("Using default nThread=1;");
+        nThreads= 1;
+        
+    }else{
+        nThreads= atoi(argv[1]);
     }
 
-    int nThreads = atoi(argv[1]);
     omp_set_num_threads(nThreads);
+
 
     int width, height, channels;
     unsigned char *img = stbi_load("dog.jpg", &width, &height, &channels, 0);
@@ -69,7 +74,7 @@ int main(int argc, char *argv[]) {
     printf("Time: %f\n", elapsed);
 
 
-    stbi_write_jpg("output.jpg", width, height, gray_channels, gray_img, 100); //1-100 image quality
+    stbi_write_jpg("dog_gray.jpg", width, height, gray_channels, gray_img, 100); //1-100 image quality
 
     return 0;
 }
