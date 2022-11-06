@@ -12,20 +12,27 @@
 
 int main(int argc, char *argv[]) {
     int nThreads;
+    char* originalFileName = (char *) malloc(100*sizeof(char));
+    char* compressedFileName = (char *) malloc(100*sizeof(char));
+    char* greyscaleFileName = (char *) malloc(100*sizeof(char));
 
-    if (argc < 2){
-        printf("Using default nThread=1\n");
-        nThreads= 1;
-        
-    }else{
-        nThreads= atoi(argv[1]);
+    /* handling command line args*/
+    if(argc!=5){
+        fprintf(stderr,"Usage ./grayscale <threads> <image_file> <compressed_image_dest> <greyscale_image_dest>\n");
+        exit(EXIT_FAILURE);
     }
-
+    else{
+        nThreads= atoi(argv[1]);
+        strcpy(originalFileName,argv[2]);
+        strcpy(compressedFileName,argv[3]);
+        strcpy(greyscaleFileName,argv[4]);
+    }
     omp_set_num_threads(nThreads);
+    
 
 
     int width, height, channels;
-    unsigned char *img = stbi_load("horse.jpg", &width, &height, &channels, 0);
+    unsigned char *img = stbi_load(originalFileName, &width, &height, &channels, 0);
     
     if(img == NULL) {
         printf("Error in loading the image\n");
@@ -33,7 +40,6 @@ int main(int argc, char *argv[]) {
     }
     
     printf("Loaded image with a width of %dpx, a height of %dpx and %d channels\n", width, height, channels);
-
 
     //IMAGE COMPRESSION
     size_t img_size = width * height * channels;
@@ -57,10 +63,11 @@ int main(int argc, char *argv[]) {
 
     double finish = omp_get_wtime();
     double elapsed = finish - start;
-    printf("\nCompression Time: %f\n", elapsed);
+    printf("\nCompression Time: %f seconds\n", elapsed);
     
-
-    stbi_write_jpg("horse_comp.jpg", comp_width, comp_height, channels, comp_img, 100); //1-100 image quality
+    
+    // stbi_write_jpg("horse_comp.jpg", comp_width, comp_height, channels, comp_img, 100); //1-100 image quality
+    stbi_write_jpg("In_the_Conservatory_comp.jpg", comp_width, comp_height, channels, comp_img, 100);
     printf("Image compression complete\n\n");
 
 
@@ -82,11 +89,15 @@ int main(int argc, char *argv[]) {
 
     finish = omp_get_wtime();
     elapsed = finish - start;
-    printf("Grayscale Time: %f\n", elapsed);
+    printf("Grayscale Time: %f seconds\n", elapsed);
 
 
-    stbi_write_jpg("horse_gray.jpg", comp_width, comp_height, gray_channels, gray_img, 100); //1-100 image quality
+    stbi_write_jpg(greyscaleFileName, comp_width, comp_height, gray_channels, gray_img, 100); //1-100 image quality
     printf("\nImage grayscale complete\n");
 
+    /* cleaning up memory*/
+    free(originalFileName);
+    free(compressedFileName);
+    free(greyscaleFileName);
     return 0;
 }
