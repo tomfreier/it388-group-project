@@ -12,7 +12,7 @@ SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # ensures object dir is created prior to all the compilation jazz
-all: | create_obj_dir grayscale oldgrayscale
+all: | create_obj_dir grayscale oldgrayscale mpi_grayscale
 
 # # compiles object files into target executable APPNAME
 # $(APPNAME): $(OBJ)
@@ -36,7 +36,11 @@ obj/oldgrayscale.o: oldgrayscale.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 
+mpi_grayscale: obj/mpi_grayscale.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
+obj/mpi_grayscale.o: mpi_grayscale.c
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 
 
