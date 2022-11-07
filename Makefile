@@ -1,4 +1,4 @@
-APPNAME = grayscale
+# APPNAME = grayscale
 CC = mpicc
 CFLAGS = -Wall -O3 -march=native -mtune=native -pipe -fopenmp
 LDFLAGS = -flto -fuse-linker-plugin -pipe -fopenmp
@@ -12,15 +12,35 @@ SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # ensures object dir is created prior to all the compilation jazz
-all: | create_obj_dir $(APPNAME)
+all: | create_obj_dir grayscale oldgrayscale
 
-# compiles object files into target executable APPNAME
-$(APPNAME): $(OBJ)
+# # compiles object files into target executable APPNAME
+# $(APPNAME): $(OBJ)
+# 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+# # compiles .o files into OBJDIR from .c files found in SRCDIR
+# $(OBJDIR)/%.o: $(SRCDIR)/%.c
+# 	$(CC) $(CFLAGS) -o $@ -c $< 
+
+grayscale: obj/grayscale.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-# compiles .o files into OBJDIR from .c files found in SRCDIR
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+obj/grayscale.o: grayscale.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+
+oldgrayscale: obj/oldgrayscale.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+obj/oldgrayscale.o: oldgrayscale.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+
+
+
+
+
+
 
 #clean project for submission
 clean:
