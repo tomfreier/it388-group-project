@@ -6,7 +6,6 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
 
-#include <mpi.h>
 #include <omp.h>
 
 
@@ -55,9 +54,13 @@ int main(int argc, char *argv[]) {
     #pragma omp parallel for
     for(int i=0; i<height; i+=2){
         for(int j=0; j<width; j+=2){
-            cpg[channels*((i/2)*comp_width + j/2)] = (p[channels*(i*width + j)] + p[channels*(i*width + j+1)] + p[channels*((i+1)*width + j)] + p[channels*((i+1)*width + j+1)])/4;
-            cpg[channels*((i/2)*comp_width + j/2) + 1] = (p[channels*(i*width + j) + 1] + p[channels*(i*width + j+1) + 1] + p[channels*((i+1)*width + j) + 1] + p[channels*((i+1)*width + j+1) + 1])/4;
-            cpg[channels*((i/2)*comp_width + j/2) + 2] = (p[channels*(i*width + j) + 2] + p[channels*(i*width + j+1) + 2] + p[channels*((i+1)*width + j) + 2] + p[channels*((i+1)*width + j+1) + 2])/4;
+            int redAvg = (p[channels*(i*width + j)] + p[channels*(i*width + j+1)] + p[channels*((i+1)*width + j)] + p[channels*((i+1)*width + j+1)])/4;
+            int greenAvg = (p[channels*(i*width + j) + 1] + p[channels*(i*width + j+1) + 1] + p[channels*((i+1)*width + j) + 1] + p[channels*((i+1)*width + j+1) + 1])/4;
+            int blueAvg = (p[channels*(i*width + j) + 2] + p[channels*(i*width + j+1) + 2] + p[channels*((i+1)*width + j) + 2] + p[channels*((i+1)*width + j+1) + 2])/4;
+            cpg[channels*((i/2)*comp_width + j/2)] = redAvg;
+            cpg[channels*((i/2)*comp_width + j/2) + 1] = greenAvg;
+            cpg[channels*((i/2)*comp_width + j/2) + 2] = blueAvg;
+            // printf("index: %d\tred_avg:%d, green_avg:%d, blue_avg:%d\n",(channels*((i/2)*comp_width + j/2)),redAvg,greenAvg,blueAvg);
         }
     }
 
@@ -67,9 +70,8 @@ int main(int argc, char *argv[]) {
     
     
     // stbi_write_jpg("horse_comp.jpg", comp_width, comp_height, channels, comp_img, 100); //1-100 image quality
-    stbi_write_jpg("In_the_Conservatory_comp.jpg", comp_width, comp_height, channels, comp_img, 100);
+    stbi_write_jpg(compressedFileName, comp_width, comp_height, channels, comp_img, 100);
     printf("Image compression complete\n\n");
-
 
     //GRAY SCALE
     int gray_channels = (channels == 4 ? 2 : 1);
