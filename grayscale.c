@@ -32,7 +32,8 @@ int main(int argc, char *argv[]) {
 
     int width, height, channels;
     unsigned char *img = stbi_load(originalFileName, &width, &height, &channels, 0);
-    
+    // stbi_write_jpg("test.png", width, height, channels, img, 100);
+
     if(img == NULL) {
         printf("Error in loading the image\n");
         exit(1);
@@ -45,15 +46,15 @@ int main(int argc, char *argv[]) {
     int comp_width = width/2, comp_height = height/2;
     size_t comp_img_size = comp_width * comp_height * channels;
     unsigned char *comp_img = malloc(comp_img_size);
-    
+   
     unsigned char *cpg=comp_img;
     unsigned char *p=img;
     
     double start = omp_get_wtime();
 
     #pragma omp parallel for
-    for(int i=0; i<height; i+=2){
-        for(int j=0; j<width; j+=2){
+    for(int i=0; i<height-1; i+=2){
+        for(int j=0; j<width-1; j+=2){
             int redAvg = (p[channels*(i*width + j)] + p[channels*(i*width + j+1)] + p[channels*((i+1)*width + j)] + p[channels*((i+1)*width + j+1)])/4;
             int greenAvg = (p[channels*(i*width + j) + 1] + p[channels*(i*width + j+1) + 1] + p[channels*((i+1)*width + j) + 1] + p[channels*((i+1)*width + j+1) + 1])/4;
             int blueAvg = (p[channels*(i*width + j) + 2] + p[channels*(i*width + j+1) + 2] + p[channels*((i+1)*width + j) + 2] + p[channels*((i+1)*width + j+1) + 2])/4;
@@ -74,7 +75,8 @@ int main(int argc, char *argv[]) {
     printf("Image compression complete\n\n");
 
     //GRAY SCALE
-    int gray_channels = (channels == 4 ? 2 : 1);
+    int gray_channels = 1;
+    printf("%d\n",gray_channels);
     size_t gray_img_size = comp_width * comp_height * gray_channels;
     unsigned char *gray_img = malloc(gray_img_size);
     unsigned char *pg=gray_img;
@@ -86,6 +88,8 @@ int main(int argc, char *argv[]) {
     for(int i=0; i<comp_height; i++){
         for(int j=0; j<comp_width; j++){
             pg[i*comp_width + j] = (uint8_t)((cpg[channels*(i*comp_width + j)] + cpg[channels*(i*comp_width + j) + 1] + cpg[channels*(i*comp_width + j) + 2])/3.0);
+
+
         }
     }
 
