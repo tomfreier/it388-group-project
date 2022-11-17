@@ -1,0 +1,20 @@
+#!/bin/bash
+#SBATCH --job-name="omp_grayscale"
+#SBATCH --output="omp_grayscale.%j.%N.txt"
+#SBATCH --partition=compute
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=128
+#SBATCH --account=isu102
+#SBATCH --export=ALL
+#SBATCH -t 00:10:00
+#This job runs with 1 nodes, 128 cores per node for a total of 128 tasks.
+
+
+
+srun -n 1 ./omp_grayscale 1 bigImage.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 2 bigImage.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 5 bigImage.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 10 bigImage.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 100 bigImage.jpg comp.jpg gray.jpg 
+
+

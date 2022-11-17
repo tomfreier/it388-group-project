@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH --job-name="mpi_grayscale"
+#SBATCH --output="mpi_grayscale.%j.%N.txt"
+#SBATCH --partition=compute
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=128
+#SBATCH --account=isu102
+#SBATCH --export=ALL
+#SBATCH -t 00:10:00
+#This job runs with 1 nodes, 128 cores per node for a total of 128 tasks.
+
+
+
+srun -n 10 ./mpi_grayscale 1 bigImage.jpg comp.jpg gray.jpg 
+
+

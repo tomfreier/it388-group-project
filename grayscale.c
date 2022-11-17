@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     
-    printf("Loaded image with a width of %dpx, a height of %dpx and %d channels\n", width, height, channels);
-
+    printf("\n\nLoaded image with a width of %dpx, a height of %dpx and %d channels\n", width, height, channels);
+    printf("Number threads: %d\n", nThreads);
     //IMAGE COMPRESSION
     size_t img_size = width * height * channels;
     int comp_width = width/2, comp_height = height/2;
@@ -67,16 +67,14 @@ int main(int argc, char *argv[]) {
 
     double finish = omp_get_wtime();
     double elapsed = finish - start;
-    printf("\nCompression Time: %f seconds\n", elapsed);
+    printf("Compression Time: %f seconds\n", elapsed);
     
     
-    // stbi_write_jpg("horse_comp.jpg", comp_width, comp_height, channels, comp_img, 100); //1-100 image quality
     stbi_write_jpg(compressedFileName, comp_width, comp_height, channels, comp_img, 100);
     printf("Image compression complete\n\n");
 
     //GRAY SCALE
     int gray_channels = 1;
-    printf("%d\n",gray_channels);
     size_t gray_img_size = comp_width * comp_height * gray_channels;
     unsigned char *gray_img = malloc(gray_img_size);
     unsigned char *pg=gray_img;
@@ -89,7 +87,6 @@ int main(int argc, char *argv[]) {
         for(int j=0; j<comp_width; j++){
             pg[i*comp_width + j] = (uint8_t)((cpg[channels*(i*comp_width + j)] + cpg[channels*(i*comp_width + j) + 1] + cpg[channels*(i*comp_width + j) + 2])/3.0);
 
-
         }
     }
 
@@ -98,8 +95,23 @@ int main(int argc, char *argv[]) {
     printf("Grayscale Time: %f seconds\n", elapsed);
 
 
+    start = omp_get_wtime();
+
+    #pragma omp parallel 
+    for(int i=0; i<comp_height; i++){
+        #pragma omp for nowait
+        for(int j=0; j<comp_width; j++){
+            pg[i*comp_width + j] = (uint8_t)((cpg[channels*(i*comp_width + j)] + cpg[channels*(i*comp_width + j) + 1] + cpg[channels*(i*comp_width + j) + 2])/3.0);
+        }
+    }
+
+    finish = omp_get_wtime();
+    elapsed = finish - start;
+    printf("Grayscale Time2: %f seconds\n", elapsed);
+
+
     stbi_write_jpg(greyscaleFileName, comp_width, comp_height, gray_channels, gray_img, 100); //1-100 image quality
-    printf("\nImage grayscale complete\n");
+    printf("Image grayscale complete\n");
 
     /* cleaning up memory*/
     free(originalFileName);
