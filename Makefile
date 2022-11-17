@@ -36,19 +36,23 @@ obj/oldgrayscale.o: oldgrayscale.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 
-mpi_grayscale: obj/mpi_grayscale.o
+mpi_grayscale: obj/mpi_grayscale.o obj/log.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 obj/mpi_grayscale.o: mpi_grayscale.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 
-
+log: obj/log.o
+	$(CC) $(CFLAGS) -o $@ -c $<
+	
+obj/log.o: log/log.c
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 
 #clean project for submission
 clean:
-	rm -rf $(OBJDIR) $(APPNAME)
+	rm -rf $(OBJDIR) mpi_grayscale oldgrayscale grayscale
 
 #creates object dir if it does not exist
 create_obj_dir:

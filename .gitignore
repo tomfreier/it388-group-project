@@ -1,4 +1,12 @@
 stb/
 obj
+.vscode
+
 grayscale
 oldgrayscale
+mpi_grayscale
+
+images/comp
+images/gray
+
+log.txt
