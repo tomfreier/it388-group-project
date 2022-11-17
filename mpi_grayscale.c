@@ -9,6 +9,10 @@
 #include "stb/stb_image_write.h"
 
 #include <mpi.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #define BUFFER 100
 #define MANAGER_CORE 0
 
@@ -33,6 +37,7 @@ int main(int argc, char *argv[])
   double start, elapsed;
   int nproc, rank;
   int width, height, channels, comp_value = 2, comp_value_block = comp_value * comp_value;
+  int readHeight, readWidth;
   char *originalFileName, *compressedFileName, *grayscaleFileName;
   uint8_t *readImg, *img, *cImg, *gImg;
   filetype_t ftype;
@@ -76,21 +81,10 @@ int main(int argc, char *argv[])
     // *** TODO: Handle odd dimensions
     // *** TODO: Handle dimensions that don't play nicely with nproc and comp_value values
 
-    readImg = stbi_load(originalFileName, &width, &height, &channels, 0);
+    readImg = stbi_load(originalFileName, &readWidth, &readHeight, &channels, 0);
 
-    height = (height / comp_value) * comp_value;
-    width = (width / comp_value) * comp_value;
-
-
-
-    if (height % (nproc * comp_value) != 0)
-    {
-      printf("Unable to process image with given dimensions");
-      MPI_Abort(comm, EXIT_FAILURE);
-      return EXIT_FAILURE;
-    }
-
-
+    height = (readHeight/2)*2;
+    width = (readWidth/2)*2;
 
 
 
@@ -122,6 +116,8 @@ int main(int argc, char *argv[])
   MPI_Barrier(comm);
 
   // * Broadcast metadata *
+  MPI_Bcast(&readHeight, 1, MPI_INT, 0, comm);
+  MPI_Bcast(&readWidth, 1, MPI_INT, 0, comm);
   MPI_Bcast(&width, 1, MPI_INT, 0, comm); // shouldn't hurt perf even though it's message passing since it's such little data
   MPI_Bcast(&height, 1, MPI_INT, 0, comm);
   MPI_Bcast(&channels, 1, MPI_INT, 0, comm);
@@ -159,7 +155,13 @@ int main(int argc, char *argv[])
   if (rank == 0)
   {
 
-    memcpy(img, readImg, imgSize);
+    for(int i = 0; i<height; i++){
+      for(int j = 0; j<width; j++){
+        for(int k = 0; k<channels; k++){
+          img[i*width*channels + j*channels + k] = readImg[i*readWidth*channels + j*channels + k];
+        }
+      }
+    }
     free(readImg);
 
 #if __DEBUG__ == 1
