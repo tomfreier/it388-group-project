@@ -130,18 +130,18 @@ int main(int argc, char *argv[])
 
   // * size calculations
   int disp_unit = sizeof(uint8_t); // will need to make this dyanmic if we decide to take non-8-bit colors
-  int imgSize = width * height * disp_unit * channels, cImgSize = imgSize / comp_value_block, gImgSize = imgSize / (channels * comp_value_block);
+  int imgSize = width * height * channels, cImgSize = imgSize / comp_value_block, gImgSize = imgSize / (channels * comp_value_block);
   MPI_Aint aintImg, aintCImg, aintGImg;
   // TODOS: Need to handle case where images have an odd*odd, odd*(evenNotDivisibleBy4) where left over pixels will result from calculation and
   // TODOS: as such will screw with size calculations as well.
 
   // * create windows *
 
-
-  MPI_Win_allocate_shared(imgSize, disp_unit, MPI_INFO_NULL, comm, &img, &imgWindow);
-  MPI_Win_allocate_shared(cImgSize, disp_unit, MPI_INFO_NULL, comm, &cImg, &cImgWindow);
-  MPI_Win_allocate_shared(gImgSize, disp_unit, MPI_INFO_NULL, comm, &gImg, &gImgWindow);
-
+  printf("%d %d %d\n", imgSize, cImgSize, gImgSize);
+  MPI_Win_allocate_shared((rank == 0) ? imgSize : 0, disp_unit, MPI_INFO_NULL, comm, &img, &imgWindow);
+  MPI_Win_allocate_shared((rank == 0) ? cImgSize : 0, disp_unit, MPI_INFO_NULL, comm, &cImg, &cImgWindow);
+  MPI_Win_allocate_shared((rank == 0) ? gImgSize : 0, disp_unit, MPI_INFO_NULL, comm, &gImg, &gImgWindow);
+  
   MPI_Barrier(comm);
   if (rank != 0)
   {
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 
   
   
-  MPI_Barrier(comm);
+
   start = MPI_Wtime();
 
   for (int i = work_height_start/comp_value; i < work_height_end/comp_value; i++)
@@ -229,7 +229,6 @@ int main(int argc, char *argv[])
     }
   }
 
-  MPI_Barrier(comm);
   elapsed = MPI_Wtime();
   
 

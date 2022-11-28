@@ -1,6 +1,6 @@
 # APPNAME = grayscale
 CC = mpicc
-CFLAGS = -Wall -O3 -march=native -mtune=native -pipe -fopenmp
+CFLAGS = -Wall -O3 -march=native -mtune=native -pipe -fopenmp -g
 LDFLAGS = -flto -fuse-linker-plugin -pipe -fopenmp
 LDLIBS = -lm
 SRCDIR = .
@@ -22,6 +22,11 @@ all: | create_obj_dir grayscale mpi_grayscale
 # $(OBJDIR)/%.o: $(SRCDIR)/%.c
 # 	$(CC) $(CFLAGS) -o $@ -c $< 
 
+	
+obj/log.o: log/log.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+
 grayscale: obj/grayscale.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
@@ -29,18 +34,13 @@ obj/grayscale.o: grayscale.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 
-mpi_grayscale: obj/mpi_grayscale.o
+mpi_grayscale: obj/mpi_grayscale.o obj/log.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 obj/mpi_grayscale.o: mpi_grayscale.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 
-log: obj/log.o
-	$(CC) $(CFLAGS) -o $@ -c $<
-	
-obj/log.o: log/log.c
-	$(CC) $(CFLAGS) -o $@ -c $<
 
 
 #clean project for submission
