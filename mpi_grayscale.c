@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
   // * Variables *
   double start, elapsed;
   int nproc, rank;
-  int width, height, channels, comp_value = 2, comp_value_block = comp_value * comp_value;
+  int width, height, channels;
   int readHeight, readWidth;
   char *originalFileName, *compressedFileName, *grayscaleFileName;
   uint8_t *readImg, *img, *cImg, *gImg;
@@ -121,8 +121,6 @@ int main(int argc, char *argv[])
   MPI_Bcast(&width, 1, MPI_INT, 0, comm); // shouldn't hurt perf even though it's message passing since it's such little data
   MPI_Bcast(&height, 1, MPI_INT, 0, comm);
   MPI_Bcast(&channels, 1, MPI_INT, 0, comm);
-  MPI_Bcast(&comp_value, 1, MPI_INT, 0, comm);
-  MPI_Bcast(&comp_value_block, 1, MPI_INT, 0, comm);
   MPI_Barrier(comm);
 
   // * Declare windows
@@ -130,14 +128,12 @@ int main(int argc, char *argv[])
 
   // * size calculations
   int disp_unit = sizeof(uint8_t); // will need to make this dyanmic if we decide to take non-8-bit colors
-  int imgSize = width * height * channels, cImgSize = imgSize / comp_value_block, gImgSize = imgSize / (channels * comp_value_block);
+  int imgSize = width * height * channels, cImgSize = imgSize / 4, gImgSize = imgSize / (channels * 4);
   MPI_Aint aintImg, aintCImg, aintGImg;
   // TODOS: Need to handle case where images have an odd*odd, odd*(evenNotDivisibleBy4) where left over pixels will result from calculation and
   // TODOS: as such will screw with size calculations as well.
 
   // * create windows *
-
-  printf("%d %d %d\n", imgSize, cImgSize, gImgSize);
   MPI_Win_allocate_shared((rank == 0) ? imgSize : 0, disp_unit, MPI_INFO_NULL, comm, &img, &imgWindow);
   MPI_Win_allocate_shared((rank == 0) ? cImgSize : 0, disp_unit, MPI_INFO_NULL, comm, &cImg, &cImgWindow);
   MPI_Win_allocate_shared((rank == 0) ? gImgSize : 0, disp_unit, MPI_INFO_NULL, comm, &gImg, &gImgWindow);
@@ -176,8 +172,8 @@ int main(int argc, char *argv[])
   int work_height_start = (rank >= hmod) ? ((hmod) * (hdiv + 1) + (rank - hmod) * hdiv) : rank * (hdiv + 1);
   int work_height_end = work_height_start + ((rank >= hmod) ? hdiv : hdiv + 1);
 
-  int cImgWidth = width / comp_value;
-  int cImgHeight = height / comp_value;
+  int cImgWidth = width/2;
+  int cImgHeight = height/2;
 
   uint32_t *ch_temp = calloc(channels, sizeof(uint32_t));
 
@@ -188,28 +184,60 @@ int main(int argc, char *argv[])
 
   start = MPI_Wtime();
 
-  for (int i = work_height_start/comp_value; i < work_height_end/comp_value; i++)
-  { // height where work is being done at in incremenets of comp_value
-    for (int j = 0; j < width/comp_value; j++)
-    { // width where work is being done at in increments of comp_value
-      for (int k = 0; k < comp_value; k++)
-      { // iterate over y axis of comp_value
-        for (int a = 0; a < comp_value; a++)
-        { // iterate over x axis of comp_value
-          for (int ch = 0; ch < channels; ch++)
-          { // iterate over each channel
-            index = i * comp_value * width * channels + j*comp_value*channels + k*width*channels + a*channels + ch;
-            ch_temp[ch] += img[index];
-          }
-        }
+  // for (int i = work_height_start/comp_value; i < work_height_end/comp_value; i++)
+  // { // height where work is being done at in incremenets of comp_value
+  //   for (int j = 0; j < width/comp_value; j++)
+  //   { // width where work is being done at in increments of comp_value
+  //     for (int k = 0; k < comp_value; k++)
+  //     { // iterate over y axis of comp_value
+  //       for (int a = 0; a < comp_value; a++)
+  //       { // iterate over x axis of comp_value
+  //         for (int ch = 0; ch < channels; ch++)
+  //         { // iterate over each channel
+  //           index = i * comp_value * width * channels + j*comp_value*channels + k*width*channels + a*channels + ch;
+  //           ch_temp[ch] += img[index];
+  //         }
+  //       }
+  //     }
+  //     for (int ch = 0; ch < channels; ch++)
+  //     {
+  //       cImg[(i*(width/comp_value) + j)*channels + ch] = (uint8_t)(ch_temp[ch] / comp_value_block);
+  //       ch_temp[ch] = 0;
+  //     }
+  //   }
+  // }
+
+  if(channels == 3){
+    for (int i = work_height_start/2; i < work_height_end/2; i++)
+    { // height where work is being done at in incremenets of comp_value
+      for (int j = 0; j < width/2; j++)
+      { // width where work is being done at in increments of comp_value
+        cImg[(i*(cImgWidth) + j)*channels] = (img[2*channels*((i*width) + j)] + img[2*channels*((i*width) + j + 1)] + img[2*channels*(((i+1)*width) + j)] + img[2*channels*(((i+1)*width) + (j+1))])/4; 
+        cImg[(i*(cImgWidth) + j)*channels + 1] = (img[2*channels*((i*width) + j) + 1] + img[2*channels*((i*width) + j + 1) + 1] + img[2*channels*(((i+1)*width) + j) + 1] + img[2*channels*(((i+1)*width) + (j+1)) + 1])/4; 
+        cImg[(i*(cImgWidth) + j)*channels + 2] = (img[2*channels*((i*width) + j) + 2] + img[2*channels*((i*width) + j + 1) + 2] + img[2*channels*(((i+1)*width) + j) + 2] + img[2*channels*(((i+1)*width) + (j+1)) + 2])/4;
       }
-      for (int ch = 0; ch < channels; ch++)
-      {
-        cImg[(i*(width/comp_value) + j)*channels + ch] = (uint8_t)(ch_temp[ch] / comp_value_block);
-        ch_temp[ch] = 0;
+    }
+  } else if (channels == 2){
+    for (int i = work_height_start/2; i < work_height_end/2; i++)
+    { // height where work is being done at in incremenets of comp_value
+      for (int j = 0; j < width/2; j++)
+      { // width where work is being done at in increments of comp_value
+        cImg[(i*(cImgWidth) + j)*channels] = (img[2*channels*((i*width) + j)] + img[2*channels*((i*width) + j + 1)] + img[2*channels*(((i+1)*width) + j)] + img[2*channels*(((i+1)*width) + (j+1))])/4; 
+        cImg[(i*(cImgWidth) + j)*channels + 1] = (img[2*channels*((i*width) + j) + 1] + img[2*channels*((i*width) + j + 1) + 1] + img[2*channels*(((i+1)*width) + j) + 1] + img[2*channels*(((i+1)*width) + (j+1)) + 1])/4; 
       }
     }
   }
+  else if (channels == 1){
+  for (int i = work_height_start/2; i < work_height_end/2; i++)
+    { // height where work is being done at in incremenets of comp_value
+    for (int j = 0; j < width/2; j++)
+      { // width where work is being done at in increments of comp_value
+        cImg[(i*(cImgWidth) + j)*channels] = (img[2*channels*((i*width) + j)] + img[2*channels*((i*width) + j + 1)] + img[2*channels*(((i+1)*width) + j)] + img[2*channels*(((i+1)*width) + (j+1))])/4; 
+      }
+    }
+  }
+  
+
 
   hmod = cImgHeight % nproc;
   hdiv = cImgHeight / nproc;
@@ -238,7 +266,7 @@ int main(int argc, char *argv[])
   // write resulting images
   if (rank == 0)
   {
-    printf("Time: %f\n", elapsed);
+    printf("Pre-compression size: %d B\nPost-compression size: %d\nTime: %f\n", height, width, elapsed);
     if (ftype == PNG)
     {
       stbi_write_png(compressedFileName, cImgWidth, cImgHeight, channels, cImg, 0);
