@@ -11,10 +11,10 @@
 
 
 
-srun -n 1 ./omp_grayscale 1 bigImage.jpg comp.jpg gray.jpg 
-srun -n 1 ./omp_grayscale 2 bigImage.jpg comp.jpg gray.jpg 
-srun -n 1 ./omp_grayscale 5 bigImage.jpg comp.jpg gray.jpg 
-srun -n 1 ./omp_grayscale 10 bigImage.jpg comp.jpg gray.jpg 
-srun -n 1 ./omp_grayscale 100 bigImage.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 1 cat.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 2 cat.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 5 cat.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 10 cat.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 100 cat.jpg comp.jpg gray.jpg 
 
 

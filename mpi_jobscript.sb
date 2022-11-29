@@ -11,6 +11,8 @@
 
 
 
-srun -n 10 ./mpi_grayscale 1 bigImage.jpg comp.jpg gray.jpg 
-
-
+srun -n 1 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 
+srun -n 2 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 
+srun -n 5 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 
+srun -n 10 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 
+srun -n 100 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 

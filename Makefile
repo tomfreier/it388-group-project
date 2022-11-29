@@ -12,7 +12,7 @@ SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # ensures object dir is created prior to all the compilation jazz
-all: | create_obj_dir grayscale mpi_grayscale
+all: | create_obj_dir omp_grayscale mpi_grayscale
 
 # # compiles object files into target executable APPNAME
 # $(APPNAME): $(OBJ)
@@ -27,10 +27,10 @@ obj/log.o: log/log.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 
-grayscale: obj/grayscale.o
+omp_grayscale: obj/omp_grayscale.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-obj/grayscale.o: grayscale.c
+obj/omp_grayscale.o: omp_grayscale.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 
@@ -45,7 +45,7 @@ obj/mpi_grayscale.o: mpi_grayscale.c
 
 #clean project for submission
 clean:
-	rm -rf $(OBJDIR) mpi_grayscale oldgrayscale grayscale
+	rm -rf $(OBJDIR) mpi_grayscale oldgrayscale omp_grayscale
 
 #creates object dir if it does not exist
 create_obj_dir:
