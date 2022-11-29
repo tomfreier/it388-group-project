@@ -9,12 +9,13 @@
 #SBATCH -t 00:10:00
 #This job runs with 1 nodes, 128 cores per node for a total of 128 tasks.
 
+module load cpu/0.15.4 gcc/10.2.0
 
 
-srun -n 1 ./omp_grayscale 1 cat.jpg comp.jpg gray.jpg 
-srun -n 1 ./omp_grayscale 2 cat.jpg comp.jpg gray.jpg 
-srun -n 1 ./omp_grayscale 5 cat.jpg comp.jpg gray.jpg 
-srun -n 1 ./omp_grayscale 10 cat.jpg comp.jpg gray.jpg 
-srun -n 1 ./omp_grayscale 100 cat.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 1 bigImage.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 2 bigImage.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 5 bigImage.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 10 bigImage.jpg comp.jpg gray.jpg 
+srun -n 1 ./omp_grayscale 100 bigImage.jpg comp.jpg gray.jpg 
 
 

@@ -9,6 +9,7 @@
 #SBATCH -t 00:10:00
 #This job runs with 1 nodes, 128 cores per node for a total of 128 tasks.
 
+module load cpu/0.15.4 gcc/10.2.0 openmpi/4.0.4
 
 
 srun -n 1 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 

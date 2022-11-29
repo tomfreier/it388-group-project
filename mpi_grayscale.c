@@ -84,6 +84,8 @@ int main(int argc, char *argv[])
     // *** TODO: Handle dimensions that don't play nicely with nproc and comp_value values
     stat(originalFileName, &preCompSb);
     readImg = stbi_load(originalFileName, &readWidth, &readHeight, &channels, 0);
+    printf("\n\nLoaded image with a width of %dpx, a height of %dpx and %d channels\n", readWidth, readHeight, channels);
+    printf("Number procs: %d\n", nproc);
 
     height = (readHeight/2)*2;
     width = (readWidth/2)*2;
