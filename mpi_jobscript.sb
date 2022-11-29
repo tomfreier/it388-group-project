@@ -11,6 +11,8 @@
 
 
 
-srun -n 10 ./exec.sh 10
-
-
+srun -n 1 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 
+srun -n 2 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 
+srun -n 5 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 
+srun -n 10 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 
+srun -n 100 ./mpi_grayscale cat.jpg comp.jpg gray.jpg 
