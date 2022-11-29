@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
   // * create windows *
 
-  printf("%d %d %d\n", imgSize, cImgSize, gImgSize);
+  // printf("%d %d %d\n", imgSize, cImgSize, gImgSize);
   MPI_Win_allocate_shared((rank == 0) ? imgSize : 0, disp_unit, MPI_INFO_NULL, comm, &img, &imgWindow);
   MPI_Win_allocate_shared((rank == 0) ? cImgSize : 0, disp_unit, MPI_INFO_NULL, comm, &cImg, &cImgWindow);
   MPI_Win_allocate_shared((rank == 0) ? gImgSize : 0, disp_unit, MPI_INFO_NULL, comm, &gImg, &gImgWindow);

@@ -11,6 +11,6 @@
 
 
 
-srun -n 10 ./mpi_grayscale 1 bigImage.jpg comp.jpg gray.jpg 
+srun -n 10 ./exec.sh 10
 
 
