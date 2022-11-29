@@ -39,6 +39,8 @@ int main(int argc, char *argv[])
   int width, height, channels;
   int readHeight, readWidth;
   char *originalFileName, *compressedFileName, *grayscaleFileName;
+  struct stat preCompSb, postCompSb;
+
   uint8_t *readImg, *img, *cImg, *gImg;
   filetype_t ftype;
 
@@ -80,7 +82,7 @@ int main(int argc, char *argv[])
 
     // *** TODO: Handle odd dimensions
     // *** TODO: Handle dimensions that don't play nicely with nproc and comp_value values
-
+    stat(originalFileName, &preCompSb);
     readImg = stbi_load(originalFileName, &readWidth, &readHeight, &channels, 0);
 
     height = (readHeight/2)*2;
@@ -268,7 +270,9 @@ int main(int argc, char *argv[])
   // write resulting images
   if (rank == 0)
   {
-    printf("Pre-compression size: %d B\nPost-compression size: %d\nTime: %f\n", height, width, elapsed);
+
+    
+   
     if (ftype == PNG)
     {
       stbi_write_png(compressedFileName, cImgWidth, cImgHeight, channels, cImg, 0);
@@ -284,6 +288,8 @@ int main(int argc, char *argv[])
       stbi_write_bmp(compressedFileName, cImgWidth, cImgHeight, channels, cImg);
       stbi_write_bmp(grayscaleFileName, cImgWidth, cImgHeight, 1, gImg);
     }
+    stat(grayscaleFileName, &postCompSb);
+    printf("Filename: %s\nPre-compression size: %d B\nPost-compression size: %d B\nTime: %f\n", originalFileName, preCompSb.st_size, postCompSb.st_size, elapsed);
   }
   MPI_Win_free(&imgWindow);
   MPI_Win_free(&cImgWindow);
