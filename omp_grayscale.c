@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
     unsigned char *pg=gray_img;
     
 
-    start = omp_get_wtime();
+    
 
     #pragma omp parallel for
     for(int i=0; i<comp_height; i++){
@@ -90,12 +90,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    finish = omp_get_wtime();
-    elapsed = finish - start;
-    printf("Grayscale Time: %f seconds\n", elapsed);
 
 
-    start = omp_get_wtime();
 
     #pragma omp parallel 
     for(int i=0; i<comp_height; i++){
@@ -107,12 +103,12 @@ int main(int argc, char *argv[]) {
 
     finish = omp_get_wtime();
     elapsed = finish - start;
-    printf("Grayscale Time2: %f seconds\n", elapsed);
+    printf("Threads: %d  Total Time: %f seconds\n", nThreads, elapsed);
 
 
     stbi_write_jpg(greyscaleFileName, comp_width, comp_height, gray_channels, gray_img, 100); //1-100 image quality
     printf("Image grayscale complete\n");
-
+    
     /* cleaning up memory*/
     free(originalFileName);
     free(compressedFileName);

@@ -139,7 +139,6 @@ int main(int argc, char *argv[])
 
   // * create windows *
 
-  // printf("%d %d %d\n", imgSize, cImgSize, gImgSize);
   MPI_Win_allocate_shared((rank == 0) ? imgSize : 0, disp_unit, MPI_INFO_NULL, comm, &img, &imgWindow);
   MPI_Win_allocate_shared((rank == 0) ? cImgSize : 0, disp_unit, MPI_INFO_NULL, comm, &cImg, &cImgWindow);
   MPI_Win_allocate_shared((rank == 0) ? gImgSize : 0, disp_unit, MPI_INFO_NULL, comm, &gImg, &gImgWindow);
@@ -187,7 +186,7 @@ int main(int argc, char *argv[])
 
   
   
-
+  MPI_Barrier(comm);
   start = MPI_Wtime();
 
   // for (int i = work_height_start/comp_value; i < work_height_end/comp_value; i++)
@@ -262,8 +261,8 @@ int main(int argc, char *argv[])
       gImg[i * cImgWidth + j] = sum / channels;
     }
   }
-
-  elapsed = MPI_Wtime();
+  MPI_Barrier(comm);
+  elapsed = MPI_Wtime() - start;
   
 
 
@@ -291,7 +290,7 @@ int main(int argc, char *argv[])
       stbi_write_bmp(grayscaleFileName, cImgWidth, cImgHeight, 1, gImg);
     }
     stat(grayscaleFileName, &postCompSb);
-    printf("Filename: %s\nPre-compression size: %d B\nPost-compression size: %d B\nTime: %f\n", originalFileName, preCompSb.st_size, postCompSb.st_size, elapsed);
+    printf("Filename: %s\nPre-compression size: %ld B\nPost-compression size: %ld B\nTime: %f\n",originalFileName, preCompSb.st_size, postCompSb.st_size, elapsed);
   }
   MPI_Win_free(&imgWindow);
   MPI_Win_free(&cImgWindow);
